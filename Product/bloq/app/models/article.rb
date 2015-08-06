@@ -1,5 +1,7 @@
-class Article < ActiveRecord::Base
-  has_many :comments, dependent: :destroy
-  validates :title, presence: true,
-            length: { minimum: 5 }
+class Article
+  include MongoMapper::Document
+
+  many :comments
+  key :title, String, required: true, length: { minimum: 5 }
+  key :text, String
 end
