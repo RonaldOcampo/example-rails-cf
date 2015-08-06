@@ -1,0 +1,15 @@
+GEM
+  remote: http://artifactory.mia.ucloud.int/artifactory/api/gems/rubygems/
+  remote: http://artifactory.mia.ucloud.int/artifactory/api/gems/ultimate-local/
+  specs:
+    archive-zip (0.7.0)
+      io-like (~> 0.3.0)
+    io-like (0.3.0)
+    rake (10.4.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  archive-zip
+  rake (~> 10.4.0)

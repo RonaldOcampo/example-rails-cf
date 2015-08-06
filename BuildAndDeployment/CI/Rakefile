@@ -1,0 +1,33 @@
+require 'fileutils'
+require 'archive/zip'
+require 'logger'
+
+$stdout.sync = true
+
+desc 'Collects all binaries and web app directories for deployment.'
+task :package_web_app do
+  web_app_source = "#{get_relative_path('../../Product/bloq')}/*"
+  web_app_binaries_destination = "#{current_path}/../../WebApp"
+  logger.info "Packaging binaries from source #{web_app_source} to destination #{web_app_binaries_destination}"
+  package_binaries web_app_source, web_app_binaries_destination
+end
+
+task :package_artifacts => [:package_web_app]
+
+def logger
+  @log ||= Logger.new($stdout)
+end
+
+def package_binaries files_pattern, destination
+  FileUtils.mkdir_p destination
+  FileUtils.cp_r Dir.glob(files_pattern), destination
+end
+
+def get_relative_path path
+  File.realpath "#{current_path}/#{path}"
+end
+
+def current_path
+  File.dirname(__FILE__)
+end
+

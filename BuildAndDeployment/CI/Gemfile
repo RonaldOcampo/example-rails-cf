@@ -1,0 +1,6 @@
+source 'http://artifactory.mia.ucloud.int/artifactory/api/gems/rubygems'
+source 'http://artifactory.mia.ucloud.int/artifactory/api/gems/ultimate-local'
+
+gem 'rake', '~> 10.4.0'
+gem 'archive-zip'
+
