@@ -1,5 +1,5 @@
 class Comment
-  include MongoMapper::EmbeddedDocument
+  include MongoMapper::Document
 
   key :commenter, String
   key :body, String
