@@ -9,7 +9,10 @@
 </p>
 
 <p>
-  <%= link_to 'Destroy Comment', [comment.article, comment],
+  <%= link_to [comment.article, comment],
               method: :delete,
-              data: { confirm: 'Are you sure?' } %>
+              data: { confirm: 'Are you sure?' },
+              class: 'btn btn-danger btn-sm' do %>
+      <i class="glyphicon glyphicon-trash"></i> Destroy Comment
+  <% end %>
 </p>

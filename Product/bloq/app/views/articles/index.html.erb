@@ -1,23 +1,62 @@
-<h1>Listing articles</h1>
+<div id="main-container" class="container-fluid">
+  <div class="row bgimg">
+    <div id="left" class="col-md-4">
+    </div>
 
-<%= link_to 'New article', new_article_path %>
+    <div id="content" class="col-md-4">
+      <h1>Listing articles</h1>
+    </div>
 
-<table>
-  <tr>
-    <th>Title</th>
-    <th>Text</th>
-    <th colspan="2"></th>
-  </tr>
+    <div id="right" class="col-md-4">
+    </div>
+  </div>
 
-  <% @articles.each do |article| %>
-      <tr>
-        <td><%= article.title %></td>
-        <td><%= article.text %></td>
-        <td><%= link_to 'Show', article_path(article) %></td>
-        <td><%= link_to 'Edit', edit_article_path(article) %></td>
-        <td><%= link_to 'Destroy', article_path(article),
-                        method: :delete,
-                        data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-  <% end %>
-</table>
+  <div class="row">
+    <div id="left" class="col-md-4">
+    </div>
+
+    <div id="content" class="col-md-4">
+      <br>
+      <%= link_to new_article_path, class: 'btn btn-success btn-sm' do %>
+          <i class="glyphicon glyphicon-plus"></i> New article
+      <% end %>
+      <br><br>
+
+      <table class="table table-striped">
+        <tr class="info">
+          <th>Title</th>
+          <th>Text</th>
+          <th colspan="3"></th>
+        </tr>
+
+        <% @articles.each do |article| %>
+            <tr>
+              <td><%= article.title %></td>
+              <td><%= article.text %></td>
+              <td>
+                <%= link_to article_path(article), class: 'btn btn-primary btn-sm' do %>
+                    <i class="glyphicon glyphicon-eye-open"></i> Show
+                <% end %>
+              </td>
+              <td>
+                <%= link_to edit_article_path(article), class: 'btn btn-info btn-sm' do %>
+                    <i class="glyphicon glyphicon-edit"></i> Edit
+                <% end %>
+              </td>
+              <td>
+                <%= link_to article_path(article),
+                              method: :delete,
+                              data: { confirm: 'Are you sure?' },
+                              class: 'btn btn-danger btn-sm' do %>
+                    <i class="glyphicon glyphicon-trash"></i> Destroy
+                <% end %>
+              </td>
+            </tr>
+        <% end %>
+      </table>
+    </div>
+
+    <div id="right" class="col-md-4">
+    </div>
+  </div>
+</div>
