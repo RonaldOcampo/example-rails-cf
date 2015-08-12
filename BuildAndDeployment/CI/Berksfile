@@ -2,3 +2,5 @@ chef_api :config
 site :opscode
 
 cookbook 'de_ci_web', path: 'cookbooks/de_ci_web'
+cookbook 'de_ci_lb', path: 'cookbooks/de_ci_lb'
+cookbook 'de_ci_db', path: 'cookbooks/de_ci_db'

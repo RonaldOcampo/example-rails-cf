@@ -38,6 +38,7 @@ desc 'Packages the cookbooks needed for deployment'
 task :package_cookbooks do
   puts 'Berkshelf run is starting...'
   `bundle exec berks install --path vendor/cookbooks -q`
+  FileUtils.mkdir_p PATH_SPADE_SCRIPTS
   Archive::Zip.archive(File.join(PATH_SPADE_SCRIPTS, 'package.zip'), 'vendor/cookbooks')
 end
 
