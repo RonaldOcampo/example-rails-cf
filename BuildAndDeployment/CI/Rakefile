@@ -1,8 +1,28 @@
 require 'fileutils'
 require 'archive/zip'
 require 'logger'
+require 'deployment_utils'
+
+require_relative 'infrastructure/config_loader'
 
 $stdout.sync = true
+
+def config
+  @config ||= ConfigLoader.load
+end
+
+def current_path
+  File.dirname(__FILE__)
+end
+
+def logger
+  @log ||= Logger.new($stdout)
+end
+
+ARTIFACT_URL = "#{config.artifactory}/#{config.project_code}/#{config.revision_number}/"
+PATH_STAGING = "#{current_path}/staging"
+PATH_SPADE_SCRIPTS = "#{current_path}/../../SpadeScripts"
+PACKAGE_ZIP = "package.zip"
 
 desc 'Collects all binaries and web app directories for deployment.'
 task :package_web_app do
@@ -12,10 +32,22 @@ task :package_web_app do
   package_binaries web_app_source, web_app_binaries_destination
 end
 
-task :package_artifacts => [:package_web_app]
+task :package_artifacts => [:package_web_app, :package_spade_scripts, :package_cookbooks]
 
-def logger
-  @log ||= Logger.new($stdout)
+desc 'Packages the cookbooks needed for deployment'
+task :package_cookbooks do
+  puts 'Berkshelf run is starting...'
+  `bundle exec berks install --path vendor/cookbooks -q`
+  Archive::Zip.archive(File.join(PATH_SPADE_SCRIPTS, 'package.zip'), 'vendor/cookbooks')
+end
+
+desc 'Packages spade scripts for deployments'
+task :package_spade_scripts do
+  [PATH_STAGING, PATH_SPADE_SCRIPTS].each { |path| FileUtils.mkdir_p path }
+
+  package_multinode_web_scripts
+  package_multinode_db_scripts
+  package_multinode_lb_scripts
 end
 
 def package_binaries files_pattern, destination
@@ -27,7 +59,115 @@ def get_relative_path path
   File.realpath "#{current_path}/#{path}"
 end
 
-def current_path
-  File.dirname(__FILE__)
+def generate_script template_folder, template_name, template_values,script_path
+  template_file = DeploymentUtils::TemplateHelper.new template_name,
+                                                      template_values,
+                                                      "#{current_path}/deployment/resources/#{template_folder}"
+
+  FileUtils.cp(template_file.path, File.join(script_path, template_name))
+
+  template_file.dispose
 end
 
+def zip_artifacts zip_file, zip_destination
+  Archive::Zip.archive(File.join(PATH_SPADE_SCRIPTS, zip_file), zip_destination)
+end
+
+def package_multinode_web_scripts
+  script_path = "#{PATH_STAGING}/multinode_web"
+  FileUtils.mkdir_p script_path
+
+  #create solo-run.sh.erb
+  generate_script 'multinode_web',
+                 'multinode_web_solo_run.sh',
+                 {url: ARTIFACT_URL,
+                  artifact_name: config.multinode_web_artifact_name,
+                  cookbook_package: PACKAGE_ZIP},
+                 "#{PATH_SPADE_SCRIPTS}"
+
+  #create node.json.erb
+  generate_script 'solo',
+                 'node.json',
+                 {run_list: config.multinode_web_run_list},
+                 script_path
+
+  #create solo-environment.rb.erb
+  generate_script 'solo',
+                 'solo-environment.rb',
+                 {environment_name: config.deployment_name,
+                  artifacts_build_number: config.revision_number},
+                 script_path
+
+  #copy solo.rb
+  FileUtils.cp(File.join("#{current_path}/deployment/resources/solo", 'solo.rb'),
+               File.join(script_path, 'solo.rb'))
+
+  #zip artifacts
+  zip_artifacts config.multinode_web_artifact_name, script_path
+end
+
+def package_multinode_db_scripts
+  script_path = "#{PATH_STAGING}/multinode_db"
+  FileUtils.mkdir_p script_path
+
+  #create solo-run.sh.erb
+  generate_script 'multinode_db',
+                 'multinode_db_solo_run.sh',
+                 {url: ARTIFACT_URL,
+                  artifact_name: config.multinode_db_artifact_name,
+                  cookbook_package: PACKAGE_ZIP},
+                 "#{PATH_SPADE_SCRIPTS}"
+
+  #create node.json.erb
+  generate_script 'solo',
+                 'node.json',
+                 {run_list: config.multinode_db_run_list},
+                 script_path
+
+  #create solo-environment.rb.erb
+  generate_script 'solo',
+                 'solo-environment.rb',
+                 {environment_name: config.deployment_name,
+                  artifacts_build_number: config.revision_number},
+                 script_path
+
+  #copy solo.rb
+  FileUtils.cp(File.join("#{current_path}/deployment/resources/solo", 'solo.rb'),
+               File.join(script_path, 'solo.rb'))
+
+  #zip artifacts
+  zip_artifacts config.multinode_db_artifact_name, script_path
+end
+
+def package_multinode_lb_scripts
+  script_path = "#{PATH_STAGING}/multinode_lb"
+  FileUtils.mkdir_p script_path
+
+  #create solo-run.sh.erb
+  generate_script 'multinode_lb',
+                 'multinode_lb_solo_run.sh',
+                 {url: ARTIFACT_URL,
+                  artifact_name: config.multinode_lb_artifact_name,
+                  cookbook_package: PACKAGE_ZIP},
+                 "#{PATH_SPADE_SCRIPTS}"
+
+  #create node.json.erb
+  generate_script 'solo',
+                 'node.json',
+                 {run_list: config.multinode_lb_run_list},
+                 script_path
+
+  #create solo-environment.rb.erb
+  generate_script 'solo',
+                 'solo-environment.rb',
+                 {environment_name: config.deployment_name,
+                  artifacts_build_number: config.revision_number},
+                 script_path
+
+  #copy solo.rb
+  FileUtils.cp(File.join("#{current_path}/deployment/resources/solo", 'solo.rb'),
+               File.join(script_path, 'solo.rb'))
+
+  #zip artifacts
+  zip_artifacts config.multinode_lb_artifact_name, script_path
+end

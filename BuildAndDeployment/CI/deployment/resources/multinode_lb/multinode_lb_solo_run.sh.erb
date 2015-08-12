@@ -1,0 +1,8 @@
+#!/bin/bash
+wget <%=url%><%=artifact_name%> -O /tmp/<%=artifact_name%>
+wget <%=url%><%= cookbook_package %> -O /tmp/<%=cookbook_package%>
+unzip /tmp/<%= cookbook_package %> -d /tmp
+unzip /tmp/<%= artifact_name %> -d /tmp
+cp -r /tmp/multinode_lb/* /tmp/cookbooks
+sudo chef-solo -c /tmp/cookbooks/solo.rb
+#sudo chef-solo -c /tmp/cookbooks/solo.rb -ldebug -L /tmp/chef.log

@@ -1,0 +1,14 @@
+{
+    "datacenter": "mia",
+    "deployment_name": "dec-ci-test",
+    "project_code": "dec-ci",
+    "spade_entry_point": "http://spade-prod.mia.ucloud.int:5000",
+    "artifactory": "http://artifactory.mia.ucloud.int/artifactory/ultimate-local",
+    "revision_number": "14.0.8",
+    "multinode_db_artifact_name": "multinode_db.zip",
+    "multinode_db_run_list": ["recipe[de_ci_db]"],
+    "multinode_web_artifact_name": "multinode_web.zip",
+    "multinode_web_run_list": ["recipe[de_ci_web]"],
+    "multinode_lb_artifact_name": "multinode_lb.zip",
+    "multinode_lb_run_list": ["recipe[de_ci_lb]"]
+}
