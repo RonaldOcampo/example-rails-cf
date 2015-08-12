@@ -2,6 +2,7 @@ require 'fileutils'
 require 'archive/zip'
 require 'logger'
 require 'deployment_utils'
+require 'spade/client'
 
 require_relative 'infrastructure/config_loader'
 
@@ -9,6 +10,17 @@ $stdout.sync = true
 
 def config
   @config ||= ConfigLoader.load
+end
+
+def client_config
+  {'entry_point' => config.spade_entry_point,
+   'username' => config.OS_USERNAME,
+   'password' => config.OS_PASSWORD
+  }
+end
+
+def deployments_client
+  Spade::Client::Deployments.new(client_config)
 end
 
 def current_path
@@ -51,6 +63,10 @@ task :package_spade_scripts do
   package_multinode_lb_scripts
 end
 
+task :deploy do
+  execute_multinode_deploy
+end
+
 def package_binaries files_pattern, destination
   FileUtils.mkdir_p destination
   FileUtils.cp_r Dir.glob(files_pattern), destination
@@ -60,7 +76,9 @@ def get_relative_path path
   File.realpath "#{current_path}/#{path}"
 end
 
-def generate_script template_folder, template_name, template_values,script_path
+def generate_script template_folder, template_name, template_values, script_path
+  FileUtils.mkdir_p script_path
+
   template_file = DeploymentUtils::TemplateHelper.new template_name,
                                                       template_values,
                                                       "#{current_path}/deployment/resources/#{template_folder}"
@@ -76,7 +94,6 @@ end
 
 def package_multinode_web_scripts
   script_path = "#{PATH_STAGING}/multinode_web"
-  FileUtils.mkdir_p script_path
 
   #create solo-run.sh.erb
   generate_script 'multinode_web',
@@ -109,7 +126,6 @@ end
 
 def package_multinode_db_scripts
   script_path = "#{PATH_STAGING}/multinode_db"
-  FileUtils.mkdir_p script_path
 
   #create solo-run.sh.erb
   generate_script 'multinode_db',
@@ -142,7 +158,6 @@ end
 
 def package_multinode_lb_scripts
   script_path = "#{PATH_STAGING}/multinode_lb"
-  FileUtils.mkdir_p script_path
 
   #create solo-run.sh.erb
   generate_script 'multinode_lb',
@@ -171,4 +186,28 @@ def package_multinode_lb_scripts
 
   #zip artifacts
   zip_artifacts config.multinode_lb_artifact_name, script_path
+end
+
+def execute_multinode_deploy
+  generate_script 'multinode_requests', 'request.json', {deployment_name: config.deployment_name,
+                                                         datacenter: config.datacenter,
+                                                         tenant: config.OS_USERNAME,
+                                                         artifactory: config.artifactory,
+                                                         project_code: config.project_code,
+                                                         revision_number: config.revision_number,
+                                                         enable_hardening: config.enable_hardening},
+                                                         PATH_SPADE_SCRIPTS
+
+  request_file = File.join(PATH_SPADE_SCRIPTS, 'request.json')
+  request = JSON.parse(File.read(request_file), symbolize_names: true)
+  logger.info "request: #{request}"
+
+  begin
+    deployment = deployments_client.create(request)
+  rescue => e
+    logger.info "Exception message: #{e.message}"
+    logger.info "Exception backtrace: #{e.backtrace}"
+    raise
+  end
+
 end
