@@ -1,10 +1,10 @@
 {
     "datacenter": "mia",
-    "deployment_name": "de-ci-test2",
+    "deployment_name": "de-ci-ron14",
     "project_code": "de-ci",
     "spade_entry_point": "http://spade-prod.mia.ucloud.int:5000",
     "artifactory": "http://artifactory.mia.ucloud.int/artifactory/ultimate-local",
-    "revision_number": "14.0.12",
+    "revision_number": "14.0.14",
     "OS_USERNAME": "de-dev",
     "OS_PASSWORD": "7T7wzPpT8FtvvR7K",
     "multinode_db_artifact_name": "multinode_db.zip",
