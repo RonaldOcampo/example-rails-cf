@@ -195,6 +195,7 @@ def package_multinode_web_scripts
   generate_script 'solo',
                  'solo-environment.rb',
                  {environment_name: config.deployment_name,
+                  project_code: config.project_code,
                   artifacts_build_number: config.revision_number},
                  script_path
 
@@ -227,6 +228,7 @@ def package_multinode_db_scripts
   generate_script 'solo',
                  'solo-environment.rb',
                  {environment_name: config.deployment_name,
+                  project_code: config.project_code,
                   artifacts_build_number: config.revision_number},
                  script_path
 
@@ -259,6 +261,7 @@ def package_multinode_lb_scripts
   generate_script 'solo',
                  'solo-environment.rb',
                  {environment_name: config.deployment_name,
+                  project_code: config.project_code,
                   artifacts_build_number: config.revision_number},
                  script_path
 
@@ -279,7 +282,9 @@ def execute_multinode_deploy
                                                          revision_number: config.revision_number,
                                                          enable_hardening: config.enable_hardening,
                                                          send_to_noc: config.send_to_noc,
-                                                         domain: config.domain},
+                                                         domain: config.domain,
+                                                         key_server_common: config.key_server_common,
+                                                         ssl_private_key: config.ssl_private_key},
                                                          PATH_SPADE_SCRIPTS
 
   request_file = File.join(PATH_SPADE_SCRIPTS, 'request.json')

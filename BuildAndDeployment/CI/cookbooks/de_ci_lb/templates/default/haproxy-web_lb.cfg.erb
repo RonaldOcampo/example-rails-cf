@@ -1,0 +1,46 @@
+global
+    log 127.0.0.1   local0
+    log 127.0.0.1   local1 notice
+    maxconn <%= node['haproxy']['global_max_connections'] %>
+    user <%= node['haproxy']['user'] %>
+    group <%= node['haproxy']['group'] %>
+    stats socket /tmp/haproxy.sock
+
+defaults
+    log     global
+    mode    http
+    compression algo gzip
+    compression type text/html text/plain text/css text/javascript
+    retries 3
+<% @defaults_timeouts.sort.map do | value, time | -%>
+    timeout <%= value %> <%= time %>
+<% end -%>
+<% @defaults_options.sort.each do | option | -%>
+    option <%= option %>
+<% end -%>
+    balance <%= node['haproxy']['balance_algorithm'] %>
+<% @defaults_errorfiles.sort.map do | errorcode, file | -%>
+    errorfile <%= errorcode %> <%= file %>
+<% end -%>
+
+frontend http
+    maxconn <%= node['haproxy']['frontend_max_connections'] %>
+    bind <%= node['haproxy']['incoming_address'] %>:<%= node['haproxy']['incoming_port'] %>
+    redirect scheme https code 307
+
+frontend https
+    no option http_proxy
+    maxconn <%= node['haproxy']['frontend_max_connections'] %>
+    bind <%= node['haproxy']['incoming_address'] %>:<%= node['haproxy']['ssl_incoming_port'] %> ssl crt <%= node['haproxy']['source']['prefix'] %>/etc/haproxy/<%= @ssl_file %> no-sslv3
+    default_backend servers-http
+
+backend servers-http
+<% @pool_members.each do |member| -%>
+    server <%= member[:hostname] %> <%= member[:ipaddress] %>:<%= node['haproxy']['member_port'] %> weight 1 check inter 5000 rise 2 fall 3
+<% end -%>
+
+<% if node['haproxy']['enable_admin'] -%>
+listen admin <%= node['haproxy']['admin']['address_bind'] %>:<%= node['haproxy']['admin']['port'] %>
+    mode http
+    stats uri /
+<% end -%>

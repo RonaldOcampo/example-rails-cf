@@ -2,7 +2,8 @@ name 'solo-environment'
 
 default_attributes product: {
         environment_name: '<%= environment_name %>',
-        binaries_revision: '<%= artifacts_build_number %>'
+        binaries_revision: '<%= artifacts_build_number %>',
+        project_code: '<%= project_code %>'
 },
 binaries: {
        url: 'http://artifactory.mia.ucloud.int/artifactory/ultimate-local'
