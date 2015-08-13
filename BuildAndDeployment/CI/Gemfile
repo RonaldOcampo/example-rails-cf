@@ -5,6 +5,7 @@ gem 'rake', '~> 10.4.0'
 gem 'archive-zip'
 gem 'deployment_utils'
 gem 'spade-client'
+gem 'table_print'
 gem 'json', '~> 1.8.0'
 gem 'berkshelf', '~> 2.0.0' # DO NOT UPDATE to 3.00
 

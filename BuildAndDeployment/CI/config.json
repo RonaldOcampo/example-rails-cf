@@ -13,5 +13,8 @@
     "multinode_web_run_list": ["recipe[de_ci_web]"],
     "multinode_lb_artifact_name": "multinode_lb.zip",
     "multinode_lb_run_list": ["recipe[de_ci_lb]"],
-    "enable_hardening": true
+    "enable_hardening": true,
+    "send_to_noc":  false,
+    "domain":"mia.ucloud.int",
+    "name_server":"https://ucns01.mia.ucloud.int"
 }

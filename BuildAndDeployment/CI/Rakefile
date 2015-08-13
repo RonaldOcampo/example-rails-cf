@@ -3,6 +3,7 @@ require 'archive/zip'
 require 'logger'
 require 'deployment_utils'
 require 'spade/client'
+require 'table_print'
 
 require_relative 'infrastructure/config_loader'
 
@@ -21,6 +22,10 @@ end
 
 def deployments_client
   Spade::Client::Deployments.new(client_config)
+end
+
+def services_client
+  Spade::Client::Services.new(client_config)
 end
 
 def current_path
@@ -51,7 +56,7 @@ task :package_cookbooks do
   puts 'Berkshelf run is starting...'
   `bundle exec berks install --path vendor/cookbooks -q`
   FileUtils.mkdir_p PATH_SPADE_SCRIPTS
-  Archive::Zip.archive(File.join(PATH_SPADE_SCRIPTS, 'package.zip'), 'vendor/cookbooks')
+  zip_artifacts 'package.zip', 'vendor/cookbooks'
 end
 
 desc 'Packages spade scripts for deployments'
@@ -63,8 +68,85 @@ task :package_spade_scripts do
   package_multinode_lb_scripts
 end
 
-task :deploy do
+task :deploy_multinode do
   execute_multinode_deploy
+end
+
+task :list do
+  instance_list = []
+  begin
+    deployments_client.get_all(config.datacenter).each { |deployment|
+      instance_list += deployment.instances.empty? ?
+          [{'deployment name' => deployment.name,
+            'instance name' => '',
+            'ip address' => '',
+            'last updated' => deployment.updated_at.to_s
+           }] :
+          deployment.instances.collect do |instance|
+            {
+                'deployment name' => deployment.name,
+                'instance name' => instance.name,
+                'ip address' => instance.ohai_data['ipaddress'],
+                'last updated' => deployment.updated_at.to_s
+            }
+          end
+    }
+  rescue => e
+    logger.info "Exception message: #{e.message}"
+    logger.info "Exception backtrace: #{e.backtrace}"
+    raise
+  end
+
+  puts
+  tp instance_list, 'deployment name', {'instance name' => {:width => 55}}, 'ip address', 'last updated'
+end
+
+task :delete, :deployment_name do |t, args|
+  logger.info "client_config: #{client_config}"
+
+  deployment_name = args.deployment_name || config.deployment_name
+
+  logger.info "Running #{t} with deployment name #{deployment_name}"
+
+  begin
+    deployment = deployments_client.get(deployment_name)
+  rescue => e
+    logger.info "Exception message: #{e.message}"
+    logger.info "Exception backtrace: #{e.backtrace}"
+    raise
+  end
+
+  begin
+    if a_record = deployment.metadata['a_record']
+      vip = services_client.find(deployment_name,'vip').collect{ |x| x['descriptor']['ipaddress'] }.first
+      logger.info "Deleting a_record: #{a_record}.#{config.domain}"
+      delete_a_record(config.name_server, config.domain, a_record, vip)
+    end
+  rescue => e
+    logger.info "Exception message: #{e.message}"
+    logger.info "Exception backtrace: #{e.backtrace}"
+  ensure
+    logger.info "Deleting deployment called: #{deployment_name}"
+    begin
+      deployment.delete
+    rescue => e
+      logger.info "Exception message: #{e.message}"
+      logger.info "Exception backtrace: #{e.backtrace}"
+      raise
+    end
+  end
+end
+
+def create_a_record name_server, domain, cname, ip_address
+  dns_client(name_server).create_a_record(domain, cname, ip_address)
+end
+
+def delete_a_record name_server, domain, cname, ip_address
+  dns_client(name_server).delete_a_record(domain, cname, ip_address)
+end
+
+def dns_client name_server
+  DeploymentUtils::TonicDnsClient.new(:username => 'admin', :password => 'admin', :name_server => name_server)
 end
 
 def package_binaries files_pattern, destination
@@ -195,7 +277,9 @@ def execute_multinode_deploy
                                                          artifactory: config.artifactory,
                                                          project_code: config.project_code,
                                                          revision_number: config.revision_number,
-                                                         enable_hardening: config.enable_hardening},
+                                                         enable_hardening: config.enable_hardening,
+                                                         send_to_noc: config.send_to_noc,
+                                                         domain: config.domain},
                                                          PATH_SPADE_SCRIPTS
 
   request_file = File.join(PATH_SPADE_SCRIPTS, 'request.json')
@@ -210,4 +294,72 @@ def execute_multinode_deploy
     raise
   end
 
+  begin
+    log_status(config.deployment_name, deployment)
+  rescue => e
+    logger.info "Exception message: #{e.message}"
+    logger.info "Exception backtrace: #{e.backtrace}"
+    raise
+  ensure
+    get_logs(deployment)
+  end
+
+  vip = services_client.find(config.deployment_name,'vip').collect{ |x| x['descriptor']['ipaddress'] }.first
+  create_a_record(config.name_server, config.domain, config.deployment_name, vip)
 end
+
+def log_status(deployment_name, deployment)
+  logger.info "Created deployment called: #{deployment_name}"
+
+  until deployment.provisioning_complete? do
+    status = deployment.provisioning_status
+    logger.info "Provisioning status is: #{status}"
+    raise "Deployment Failed" if status == 'FAILED'
+    sleep 10
+  end
+  logger.info "Provisioning completed"
+
+  logger.info "Appliance configuration starting"
+  _wait_for(deployment, :appliance_configuration_complete?, :appliance_config_status, :appliance_configuration_steps)
+  logger.info "Appliance configuration completed"
+
+  unless deployment.appliance_config_failed?
+    logger.info "Application configuration starting"
+    _wait_for(deployment, :application_configuration_complete?, :application_config_status, :application_configuration_steps)
+    logger.info "Application configuration completed"
+  end
+
+  logger.info "Deployment #{deployment_name} finished."
+end
+
+def _wait_for(deployment, complete_method, status_method, step_method)
+  until deployment.send(complete_method) do
+    steps = deployment.send(step_method).select { |step| step['status'] == 'IN_PROGRESS' }
+    if steps
+      status = deployment.send(status_method)
+      steps.each { |step| logger.info "Step #{step['name']} is #{status}, running command '#{step['command']}' on role '#{step['role']}.'" }
+    else
+      logger.info "No step currently in progress."
+    end
+    if deployment.send(status_method) == 'FAILED'
+      logger.info "Deployment failed."
+      raise "Deployment failed."
+    end
+    sleep 10
+  end
+end
+
+def get_logs(deployment)
+  deployment.instances.each { |instance|
+    logger.info "*** Logs for instance: #{instance.name} ***"
+    instance.logs.each { |spadeLog|
+      if spadeLog.type != 'cloud-init'
+        logger.info "*** Step name: #{spadeLog.step_name} ***"
+        logger.info "*** Command: #{spadeLog.command_string} ***"
+        logger.info "*** URI: #{spadeLog.uri} ***"
+        logger.info spadeLog.read
+      end
+    }
+  }
+end
+

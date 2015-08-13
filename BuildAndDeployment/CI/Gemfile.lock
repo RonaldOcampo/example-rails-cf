@@ -168,6 +168,7 @@ GEM
       wasabi (~> 1.0)
     solve (0.8.2)
     spade-client (0.2.172)
+    table_print (1.5.4)
     thor (0.18.1)
     timers (4.0.1)
       hitimes
@@ -196,3 +197,4 @@ DEPENDENCIES
   json (~> 1.8.0)
   rake (~> 10.4.0)
   spade-client
+  table_print
