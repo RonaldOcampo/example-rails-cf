@@ -1,0 +1,23 @@
+{"chef":
+    {"chef_server_url":"https://paas-chef.mia.ucloud.int/",
+        "validation_client_name":"chef-validator",
+        "validation_key_path":".chef/pem/validation.pem",
+        "client_key":".chef/pem/paas-rst.pem",
+        "node_name":"paas-rst"
+    },
+    "cookbook":{
+        "copyright":"Ultimate Software",
+        "email":"",
+        "license":"reserved"},
+    "allowed_licenses":[],
+    "raise_license_exception":false,
+    "vagrant":{
+        "vm":{
+            "box":"Berkshelf-CentOS- 6.3-x86_64-minimal",
+            "box_url":"https://dl.dropbox.com/u/31081437/Berkshelf-CentOS-6.3-x86_64-minimal.box",
+            "forward_port":{},
+            "network":{" bridged":false,"hostonly":"33.33.33.10"},
+            "provision":"chef_solo"}
+    },
+    "ssl" :{"verify":false}
+}
