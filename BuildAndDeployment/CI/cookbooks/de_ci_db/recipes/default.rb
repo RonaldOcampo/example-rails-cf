@@ -6,3 +6,5 @@
 #
 # All rights reserved - Do Not Redistribute
 #
+
+include_recipe 'de_ci_db::hardening_db'

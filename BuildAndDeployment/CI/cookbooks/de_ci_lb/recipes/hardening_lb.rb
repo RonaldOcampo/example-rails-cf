@@ -1,7 +1,6 @@
 hardening_rule "lb-admin-page-rule-tcp-in-#{node['haproxy']['admin']['port']}" do
   direction :in
   protocol :tcp
-  source '0.0.0.0/0'
   port node['haproxy']['admin']['port'].to_i
 end
 
@@ -17,4 +16,10 @@ hardening_rule "lb-ssl-incoming-port-rule-tcp-in-#{node['haproxy']['ssl_incoming
   protocol :tcp
   source '0.0.0.0/0'
   port node['haproxy']['ssl_incoming_port'].to_i
+end
+
+hardening_rule "webapp-tcp-out-#{node[:paas_agent][:webapp_port]}" do
+  direction :out
+  protocol :tcp
+  port node[:paas_agent][:webapp_port].to_i
 end
