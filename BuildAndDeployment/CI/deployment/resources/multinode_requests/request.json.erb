@@ -4,10 +4,10 @@
     "tenant": "<%= tenant %>",
     "appliances": [
         {
-            "type": "iis",
+            "type": "ubuntubase",
             "name": "web",
             "roles": {
-                "iis": {
+                "ubuntu": {
                     "count": 2
                 }
             }
@@ -23,21 +23,9 @@
     ],
     "application_steps": [
         {
-            "name": "lb-service-registry-master",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/multinode_lb_solo_run.sh",
-            "role": "master",
-            "applianceName": "lb"
-        },
-        {
-            "name": "lb-service-registry-slave",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/multinode_lb_solo_run.sh",
-            "role": "slave",
-            "applianceName": "lb"
-        },
-        {
             "name": "web",
             "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/multinode_web_solo_run.sh",
-            "role": "iis",
+            "role": "ubuntu",
             "applianceName": "web"
         },
         {
