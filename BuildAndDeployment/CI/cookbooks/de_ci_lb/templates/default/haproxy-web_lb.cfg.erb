@@ -36,7 +36,7 @@ frontend https
 
 backend servers-http
 <% @pool_members.each do |member| -%>
-    server <%= member[:hostname] %> <%= member[:ipaddress] %>:<%= node['haproxy']['member_port'] %> weight 1 check inter 5000 rise 2 fall 3
+    server <%= member[:hostname] %> <%= member[:ipaddress] %>:<%= node[:paas_agent][:webapp_port] %> weight 1 check inter 5000 rise 2 fall 3
 <% end -%>
 
 <% if node['haproxy']['enable_admin'] -%>

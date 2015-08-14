@@ -65,6 +65,6 @@ spade_service 'lb' do
        'ipaddress' => node['ipaddress'],
        'hostname' => node.hostname,
        'fqdn' => "#{node.hostname}.#{node[:paas_agent][:domain]}",
-       'version' => node['product']['binaries_revision]']
+       'version' => node['product']['binaries_revision']
    })
 end

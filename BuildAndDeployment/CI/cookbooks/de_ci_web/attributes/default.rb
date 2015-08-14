@@ -1,0 +1,1 @@
+default[:de_ci_web][:web_directory] = '/var/www/bloq'
