@@ -4,9 +4,7 @@ author "de_ci@ucloud"
 start on (filesystem and net-device-up IFACE!=lo)
 stop on runlevel [016]
 
-chdir <%= @web_directory %>
-
 respawn
 
-exec start-stop-daemon --chuid web_bloq --start --exec bin/rails -- server -b <%= node['ipaddress'] %> -p <%= node[:paas_agent][:webapp_port] %>
+exec start-stop-daemon --chuid web_bloq --chdir <%= @web_directory %> --start --exec bin/rails -- server -b <%= node['ipaddress'] %> -p <%= node[:paas_agent][:webapp_port] %>
 

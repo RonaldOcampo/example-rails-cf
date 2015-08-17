@@ -18,7 +18,6 @@ end
   zlib1g-dev
   libsqlite3-dev
   ruby-execjs
-  daemon
 ).each { |pkg|
   package pkg do
     action :install
@@ -46,7 +45,12 @@ execute "unzip #{root_directory}/#{artifact} -d #{web_directory}" do
   not_if { Dir.exists? "#{web_directory}/bin" }
 end
 
-execute "chmod -R 755 #{web_directory}/*"
+user 'web_bloq' do
+  shell '/bin/false'
+end
+
+execute "chmod -R 755 #{web_directory}"
+execute "chown -R web_bloq:web_bloq #{web_directory}"
 
 execute 'bundle install' do
   cwd web_directory
@@ -60,10 +64,6 @@ end
 
 execute 'bin/rake db:migrate' do
   cwd web_directory
-end
-
-user 'web_bloq' do
-  shell '/bin/false'
 end
 
 template "/etc/init/#{service_name}.conf" do
