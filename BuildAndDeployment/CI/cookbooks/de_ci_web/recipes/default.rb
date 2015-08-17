@@ -18,6 +18,7 @@ end
   zlib1g-dev
   libsqlite3-dev
   ruby-execjs
+  daemon
 ).each { |pkg|
   package pkg do
     action :install
@@ -29,6 +30,7 @@ include_recipe 'de_ci_web::hardening_web'
 artifact = 'WebApp.zip'
 web_directory = node[:de_ci_web][:web_directory]
 root_directory = Chef::Config[:file_cache_path]
+service_name = 'bloq'
 
 directory web_directory do
   recursive true
@@ -60,9 +62,20 @@ execute 'bin/rake db:migrate' do
   cwd web_directory
 end
 
-execute "bin/rails server -b #{node['ipaddress']} -p #{node[:paas_agent][:webapp_port]} &" do
-  cwd web_directory
-  not_if { `ps -ef | grep 'bin/rails server'`.count('\n') > 2 }
+template "/etc/init.d/#{service_name}" do
+  source "etc_initd_#{service_name}.erb"
+  owner 'root'
+  group 'root'
+  mode 0644
+  variables(
+      service_name: service_name,
+      web_directory: web_directory
+  )
+end
+
+service service_name do
+  supports :restart => true, :start => true, :stop => true
+  action [:enable, :start]
 end
 
 spade_service 'web_server' do

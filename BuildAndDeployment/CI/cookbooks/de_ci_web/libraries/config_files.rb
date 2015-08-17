@@ -13,7 +13,7 @@ module ConfigFiles
     mongo_replicaset_host_string = mongo_replicaset_hosts
     Chef::Log.info("Using database replicaset hosts: #{mongo_replicaset_host_string}")
 
-    replace_text_in_files config_files, 'Mongo::Connection.new(\'localhost\', 27017)', "Mongo::MongoReplicaSetClient.new(#{mongo_replicaset_host_string})"
+    replace_text_in_files config_files, 'Mongo::Connection.*$', "Mongo::MongoReplicaSetClient.new(#{mongo_replicaset_host_string})"
   end
 
   private
