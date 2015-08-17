@@ -62,12 +62,6 @@ ruby_block 'Updating mongo settings in config files' do
   end
 end
 
-# execute 'bin/rake db:migrate' do
-#   cwd web_directory
-#   retries 3
-#   retry_delay 10
-# end
-
 template "/etc/init/#{service_name}.conf" do
   source "#{service_name}.conf.erb"
   owner 'root'
@@ -79,10 +73,10 @@ template "/etc/init/#{service_name}.conf" do
   )
 end
 
-# service service_name do
-#   supports :restart => true, :start => true, :stop => true
-#   action [:enable, :start]
-# end
+service service_name do
+  supports :restart => true, :start => true, :stop => true
+  action [:enable, :start]
+end
 
 spade_service 'web_server' do
   type 'web_server'
