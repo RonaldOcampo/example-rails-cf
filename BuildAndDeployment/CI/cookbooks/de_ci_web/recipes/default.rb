@@ -62,8 +62,12 @@ execute 'bin/rake db:migrate' do
   cwd web_directory
 end
 
-template "/etc/init.d/#{service_name}" do
-  source "etc_initd_#{service_name}.erb"
+user 'web_bloq' do
+  shell '/bin/false'
+end
+
+template "/etc/init/#{service_name}.conf" do
+  source "#{service_name}.conf.erb"
   owner 'root'
   group 'root'
   mode 0644
