@@ -64,6 +64,8 @@ end
 
 execute 'bin/rake db:migrate' do
   cwd web_directory
+  retries 3
+  retry_delay 10
 end
 
 template "/etc/init/#{service_name}.conf" do
