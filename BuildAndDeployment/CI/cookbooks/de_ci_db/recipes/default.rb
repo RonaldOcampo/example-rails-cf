@@ -8,3 +8,5 @@
 #
 
 include_recipe 'de_ci_db::hardening_db'
+include_recipe 'de_ci_db::backup'
+include_recipe 'de_ci_db::restore'

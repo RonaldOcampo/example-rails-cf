@@ -285,6 +285,10 @@ def execute_multinode_deploy
                                                          domain: config.domain,
                                                          webapp_port: config.webapp_port,
                                                          key_server_common: config.key_server_common,
+                                                         enable_backup_schedule: config.enable_backup_schedule,
+                                                         backup_location: config.backup_location,
+                                                         backup_device: config.backup_device,
+                                                         cifs_data: config.cifs_data,
                                                          ssl_private_key: config.ssl_private_key},
                                                          PATH_SPADE_SCRIPTS
 

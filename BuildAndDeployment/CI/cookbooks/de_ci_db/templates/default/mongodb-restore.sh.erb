@@ -1,0 +1,8 @@
+#!/bin/bash
+
+backup_directory=$1
+mount -t cifs -o username=<%= @username %>,password=<%= @password %> <%= @backup_device %> <%= @backup_location %>
+if [ $? -eq 0 ]; then
+    mongorestore --oplogReplay <%= @backup_location %>/$backup_directory
+fi
+umount <%= @backup_location %>

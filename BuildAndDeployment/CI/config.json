@@ -1,10 +1,10 @@
 {
     "datacenter": "mia",
-    "deployment_name": "de-ci-ron27",
+    "deployment_name": "de-ci-ron33",
     "project_code": "de-ci",
     "spade_entry_point": "http://spade-prod.mia.ucloud.int:5000",
     "artifactory": "http://artifactory.mia.ucloud.int/artifactory/ultimate-local",
-    "revision_number": "14.0.27",
+    "revision_number": "14.0.33",
     "OS_USERNAME": "de-dev",
     "OS_PASSWORD": "7T7wzPpT8FtvvR7K",
     "multinode_db_artifact_name": "multinode_db.zip",
@@ -19,5 +19,9 @@
     "webapp_port": "3000",
     "name_server":"https://ucns01.mia.ucloud.int",
     "key_server_common" : "http://keyserver.mia.ucloud.int/keys/common/",
-    "ssl_private_key" : "ultiprocert.pem"
+    "ssl_private_key" : "ultiprocert.pem",
+    "enable_backup_schedule" : false,
+    "backup_location" : "/media/backups",
+    "backup_device" : "//ucbackups.mia.ucloud.int/SQLBackups_Production3/V14/DE_CI",
+    "cifs_data": "cifs-data.json"
 }

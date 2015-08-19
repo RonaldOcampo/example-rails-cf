@@ -1,0 +1,5 @@
+default[:de_ci_db][:enable_backup_schedule] = node[:paas_agent][:enable_backup_schedule]
+default[:de_ci_db][:backup_location] = node[:paas_agent][:backup_location]
+default[:de_ci_db][:backup_device] = node[:paas_agent][:backup_device]
+default[:de_ci_db][:key_server_common] = node[:paas_agent][:key_server_common]
+default[:de_ci_db][:cifs_data] = node[:paas_agent][:cifs_data]

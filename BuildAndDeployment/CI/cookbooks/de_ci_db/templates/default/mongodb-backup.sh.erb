@@ -1,0 +1,18 @@
+#!/bin/bash
+
+timestamp=$(date +%Y%m%d%H%M)
+directory="<%= @backup_location %>/<%= node.hostname %>/$timestamp"
+log_directory="/opt/mongodb"
+mkdir -p $log_directory
+mount -t cifs -o username=<%= @username %>,password=<%= @password %> <%= @backup_device %> <%= @backup_location %>
+mkdir -p $directory
+log_file="$log_directory/mongodb_backup.log"
+cmd_status=`mongodump --oplog --out $directory  2>&1`
+if [ $? -ne 0 ]; then
+  echo "$timestamp: Failed, $cmd_status" >> $log_file
+else
+  echo "$timestamp: Successful" >> $log_file
+fi
+umount <%= @backup_location %>
+echo $cmd_status
+echo "backup_directory:<%= node.hostname %>/$timestamp"
