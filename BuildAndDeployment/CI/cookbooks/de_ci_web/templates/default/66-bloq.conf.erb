@@ -1,0 +1,10 @@
+# Bloq rsyslog client configuration file
+# Bloq active log file config
+
+input(type="imfile"
+          File="<%= @logging_bloq_path %>"
+          Tag="bloq:"
+          Severity="info"
+          Facility="local0"
+          StateFile="bloq"
+)

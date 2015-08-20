@@ -78,6 +78,8 @@ service service_name do
   action [:enable, :start]
 end
 
+include_recipe 'de_ci_web::logging'
+
 spade_service 'web_server' do
   type 'web_server'
   descriptor ({
