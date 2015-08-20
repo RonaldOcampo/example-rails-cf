@@ -77,7 +77,7 @@ task :deploy_allinone do
 end
 
 task :deploy, :deployment_type do |t, args|
-  args.deployment_type = 'M' ? execute_multinode_deploy : execute_allinone_deploy
+  args.deployment_type == 'M' ? execute_multinode_deploy : execute_allinone_deploy
 end
 
 task :list do
