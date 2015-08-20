@@ -72,6 +72,14 @@ task :deploy_multinode do
   execute_multinode_deploy
 end
 
+task :deploy_allinone do
+  execute_allinone_deploy
+end
+
+task :deploy, :deployment_type do |t, args|
+  args.deployment_type = 'M' ? execute_multinode_deploy : execute_allinone_deploy
+end
+
 task :list do
   instance_list = []
   begin
@@ -316,6 +324,11 @@ def execute_multinode_deploy
 
   vip = services_client.find(config.deployment_name,'vip').collect{ |x| x['descriptor']['ipaddress'] }.first
   create_a_record(config.name_server, config.domain, config.deployment_name, vip)
+end
+
+def execute_allinone_deploy
+  #TODO
+  puts 'executing allinone deploy'
 end
 
 def log_status(deployment_name, deployment)
