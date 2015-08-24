@@ -24,31 +24,31 @@
     "application_steps": [
         {
             "name": "web",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/multinode_web_solo_run.sh",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/web_solo_run.sh",
             "role": "ubuntu",
             "applianceName": "web"
         },
         {
             "name": "lb-master",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/multinode_lb_solo_run.sh",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/lb_solo_run.sh",
             "role": "master",
             "applianceName": "lb"
         },
         {
             "name": "lb-slave",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/multinode_lb_solo_run.sh",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/lb_solo_run.sh",
             "role": "slave",
             "applianceName": "lb"
         },
         {
             "name": "db-primary",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/multinode_db_solo_run.sh",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/db_solo_run.sh",
             "role": "primary",
             "applianceName": "db"
         },
         {
             "name": "db-member",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/multinode_db_solo_run.sh",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/db_solo_run.sh",
             "role": "member",
             "applianceName": "db"
         }

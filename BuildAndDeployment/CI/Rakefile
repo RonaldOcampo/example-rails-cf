@@ -63,21 +63,22 @@ desc 'Packages spade scripts for deployments'
 task :package_spade_scripts do
   [PATH_STAGING, PATH_SPADE_SCRIPTS].each { |path| FileUtils.mkdir_p path }
 
-  package_multinode_web_scripts
-  package_multinode_db_scripts
-  package_multinode_lb_scripts
+  package_web_scripts
+  package_db_scripts
+  package_lb_scripts
+end
+
+desc 'Deploys multinode or all-in-one environment'
+task :deploy, :deployment_type do |t, args|
+  args.deployment_type == 'M' ? execute_multinode_deploy : execute_all_in_one_deploy
 end
 
 task :deploy_multinode do
-  execute_multinode_deploy
+  Rake::Task['deploy'].invoke('M')
 end
 
-task :deploy_allinone do
-  execute_allinone_deploy
-end
-
-task :deploy, :deployment_type do |t, args|
-  args.deployment_type == 'M' ? execute_multinode_deploy : execute_allinone_deploy
+task :deploy_all_in_one do
+  Rake::Task['deploy'].invoke('A')
 end
 
 task :list do
@@ -85,19 +86,19 @@ task :list do
   begin
     deployments_client.get_all(config.datacenter).each { |deployment|
       instance_list += deployment.instances.empty? ?
-          [{'deployment name' => deployment.name,
-            'instance name' => '',
-            'ip address' => '',
+        [{'deployment name' => deployment.name,
+          'instance name' => '',
+          'ip address' => '',
+          'last updated' => deployment.updated_at.to_s
+         }] :
+        deployment.instances.collect do |instance|
+          {
+            'deployment name' => deployment.name,
+            'instance name' => instance.name,
+            'ip address' => instance.ohai_data['ipaddress'],
             'last updated' => deployment.updated_at.to_s
-           }] :
-          deployment.instances.collect do |instance|
-            {
-                'deployment name' => deployment.name,
-                'instance name' => instance.name,
-                'ip address' => instance.ohai_data['ipaddress'],
-                'last updated' => deployment.updated_at.to_s
-            }
-          end
+          }
+        end
     }
   rescue => e
     logger.info "Exception message: #{e.message}"
@@ -187,21 +188,21 @@ def copy_solo_file_to_package_location script_path
                File.join(script_path, 'solo.rb'))
 end
 
-def package_multinode_web_scripts
-  script_path = "#{PATH_STAGING}/multinode_web"
+def package_web_scripts
+  script_path = "#{PATH_STAGING}/web"
 
   #create solo-run.sh.erb
-  generate_script 'multinode_web',
-                  'multinode_web_solo_run.sh',
+  generate_script 'web',
+                  'web_solo_run.sh',
                   {url: ARTIFACT_URL,
-                   artifact_name: config.multinode_web_artifact_name,
+                   artifact_name: config.web_artifact_name,
                    cookbook_package: PACKAGE_ZIP},
                   "#{PATH_SPADE_SCRIPTS}"
 
   #create node.json.erb
   generate_script 'solo',
                   'node.json',
-                  {run_list: config.multinode_web_run_list},
+                  {run_list: config.web_run_list},
                   script_path
 
   #create solo-environment.rb.erb
@@ -214,24 +215,24 @@ def package_multinode_web_scripts
 
   #copy solo.rb and zip artifacts
   copy_solo_file_to_package_location script_path
-  zip_artifacts config.multinode_web_artifact_name, script_path
+  zip_artifacts config.web_artifact_name, script_path
 end
 
-def package_multinode_db_scripts
-  script_path = "#{PATH_STAGING}/multinode_db"
+def package_db_scripts
+  script_path = "#{PATH_STAGING}/db"
 
   #create solo-run.sh.erb
-  generate_script 'multinode_db',
-                  'multinode_db_solo_run.sh',
+  generate_script 'db',
+                  'db_solo_run.sh',
                   {url: ARTIFACT_URL,
-                   artifact_name: config.multinode_db_artifact_name,
+                   artifact_name: config.db_artifact_name,
                    cookbook_package: PACKAGE_ZIP},
                   "#{PATH_SPADE_SCRIPTS}"
 
   #create node.json.erb
   generate_script 'solo',
                   'node.json',
-                  {run_list: config.multinode_db_run_list},
+                  {run_list: config.db_run_list},
                   script_path
 
   #create solo-environment.rb.erb
@@ -244,24 +245,24 @@ def package_multinode_db_scripts
 
   #copy solo.rb and zip artifacts
   copy_solo_file_to_package_location script_path
-  zip_artifacts config.multinode_db_artifact_name, script_path
+  zip_artifacts config.db_artifact_name, script_path
 end
 
-def package_multinode_lb_scripts
-  script_path = "#{PATH_STAGING}/multinode_lb"
+def package_lb_scripts
+  script_path = "#{PATH_STAGING}/lb"
 
   #create solo-run.sh.erb
-  generate_script 'multinode_lb',
-                  'multinode_lb_solo_run.sh',
+  generate_script 'lb',
+                  'lb_solo_run.sh',
                   {url: ARTIFACT_URL,
-                   artifact_name: config.multinode_lb_artifact_name,
+                   artifact_name: config.lb_artifact_name,
                    cookbook_package: PACKAGE_ZIP},
                   "#{PATH_SPADE_SCRIPTS}"
 
   #create node.json.erb
   generate_script 'solo',
                   'node.json',
-                  {run_list: config.multinode_lb_run_list},
+                  {run_list: config.lb_run_list},
                   script_path
 
   #create solo-environment.rb.erb
@@ -274,11 +275,11 @@ def package_multinode_lb_scripts
 
   #copy solo.rb and zip artifacts
   copy_solo_file_to_package_location script_path
-  zip_artifacts config.multinode_lb_artifact_name, script_path
+  zip_artifacts config.lb_artifact_name, script_path
 end
 
 def execute_multinode_deploy
-  generate_script 'multinode_requests', 'request.json', {deployment_name: config.deployment_name,
+  generate_script 'requests_multinode', 'request.json', {deployment_name: config.deployment_name,
                                                          datacenter: config.datacenter,
                                                          tenant: config.OS_USERNAME,
                                                          artifactory: config.artifactory,
@@ -322,9 +323,46 @@ def execute_multinode_deploy
   create_a_record(config.name_server, config.domain, config.deployment_name, vip)
 end
 
-def execute_allinone_deploy
-  #TODO
-  puts 'executing allinone deploy'
+def execute_all_in_one_deploy
+  generate_script 'requests_all_in_one', 'request.json', {deployment_name: config.deployment_name,
+                                                          datacenter: config.datacenter,
+                                                          tenant: config.OS_USERNAME,
+                                                          artifactory: config.artifactory,
+                                                          project_code: config.project_code,
+                                                          revision_number: config.revision_number,
+                                                          enable_hardening: config.enable_hardening,
+                                                          send_to_noc: config.send_to_noc,
+                                                          domain: config.domain,
+                                                          webapp_port: config.webapp_port,
+                                                          key_server_common: config.key_server_common,
+                                                          enable_backup_schedule: config.enable_backup_schedule,
+                                                          backup_location: config.backup_location,
+                                                          backup_device: config.backup_device,
+                                                          cifs_data: config.cifs_data,
+                                                          ssl_private_key: config.ssl_private_key},
+                                                          PATH_SPADE_SCRIPTS
+
+  request_file = File.join(PATH_SPADE_SCRIPTS, 'request.json')
+  request = JSON.parse(File.read(request_file), symbolize_names: true)
+  logger.info "request: #{request}"
+
+  begin
+    deployment = deployments_client.create(request)
+  rescue => e
+    logger.info "Exception message: #{e.message}"
+    logger.info "Exception backtrace: #{e.backtrace}"
+    raise
+  end
+
+  begin
+    log_status(config.deployment_name, deployment)
+  rescue => e
+    logger.info "Exception message: #{e.message}"
+    logger.info "Exception backtrace: #{e.backtrace}"
+    raise
+  ensure
+    get_logs(deployment)
+  end
 end
 
 def log_status(deployment_name, deployment)
@@ -381,4 +419,3 @@ def get_logs(deployment)
     }
   }
 end
-
