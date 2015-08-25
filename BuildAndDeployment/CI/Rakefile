@@ -339,7 +339,8 @@ def execute_all_in_one_deploy
                                                           backup_location: config.backup_location,
                                                           backup_device: config.backup_device,
                                                           cifs_data: config.cifs_data,
-                                                          ssl_private_key: config.ssl_private_key},
+                                                          ssl_private_key: config.ssl_private_key,
+                                                          all_in_one: config.all_in_one},
                                                           PATH_SPADE_SCRIPTS
 
   request_file = File.join(PATH_SPADE_SCRIPTS, 'request.json')

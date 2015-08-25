@@ -23,5 +23,6 @@
     "enable_backup_schedule" : false,
     "backup_location" : "/media/backups",
     "backup_device" : "//ucbackups.mia.ucloud.int/SQLBackups_Production3/V14/DE_CI",
-    "cifs_data": "cifs-data.json"
+    "cifs_data": "cifs-data.json",
+    "all_in_one": true
 }

@@ -60,6 +60,7 @@ ruby_block 'Updating mongo settings in config files' do
   block do
     update_mongo_settings
   end
+  not_if {node[:paas_agent][:all_in_one] == 'true'}
 end
 
 template "/etc/init/#{service_name}.conf" do
