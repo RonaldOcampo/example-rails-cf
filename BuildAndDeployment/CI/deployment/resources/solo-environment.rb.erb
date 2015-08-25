@@ -1,0 +1,15 @@
+name 'solo-environment'
+
+default_attributes product: {
+        binaries_revision: '<%= artifacts_build_number %>',
+        project_code: '<%= project_code %>'
+},
+binaries: {
+       url: 'http://artifactory.mia.ucloud.int/artifactory/ultimate-local'
+},
+windows: {
+       rubyzipversion: '0.9.9'
+},
+lsb: {
+       codename: ''
+}

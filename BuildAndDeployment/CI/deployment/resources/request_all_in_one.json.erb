@@ -1,0 +1,45 @@
+{
+    "name": "<%= deployment_name %>",
+    "datacenter": "<%= datacenter %>",
+    "tenant": "<%= tenant %>",
+    "appliances": [
+        {
+            "type": "haproxy-mongo",
+            "name": "all"
+        }
+    ],
+    "application_steps": [
+        {
+            "name": "install-web",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/web_solo_run.sh",
+            "role": "db-lb",
+            "applianceName": "all"
+        },
+        {
+            "name": "install-lb",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/lb_solo_run.sh",
+            "role": "db-lb",
+            "applianceName": "all"
+        },
+        {
+            "name": "install-db",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/db_solo_run.sh",
+            "role": "db-lb",
+            "applianceName": "all"
+        }
+    ],
+    "metadata": {
+        "enable_hardening": <%= enable_hardening %>,
+        "send_to_noc": "<%= send_to_noc %>",
+        "domain": "<%= domain %>",
+        "webapp_port": "<%= webapp_port %>",
+        "a_record": "<%= deployment_name %>",
+        "key_server_common": "<%= key_server_common %>",
+        "ssl_private_key": "<%= ssl_private_key %>",
+        "enable_backup_schedule": "<%= enable_backup_schedule %>",
+        "backup_location": "<%= backup_location %>",
+        "backup_device": "<%= backup_device %>",
+        "cifs_data": "<%= cifs_data %>",
+        "all_in_one": <%= all_in_one %>
+    }
+}
