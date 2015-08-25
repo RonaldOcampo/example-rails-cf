@@ -16,14 +16,14 @@
             "applianceName": "all"
         },
         {
-            "name": "install-db",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/db_solo_run.sh",
+            "name": "install-lb",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/lb_solo_run.sh",
             "role": "db-lb",
             "applianceName": "all"
         },
         {
-            "name": "install-lb",
-            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/lb_solo_run.sh",
+            "name": "install-db",
+            "command": "<%= artifactory %>/<%= project_code %>/<%= revision_number %>/db_solo_run.sh",
             "role": "db-lb",
             "applianceName": "all"
         }
