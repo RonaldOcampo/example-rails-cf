@@ -167,13 +167,14 @@ def get_relative_path path
   File.realpath "#{current_path}/#{path}"
 end
 
-def generate_script template_folder, template_name, template_values, script_path
+def generate_script template_name, template_values, script_path
   FileUtils.mkdir_p script_path
 
   template_file = DeploymentUtils::TemplateHelper.new template_name,
                                                       template_values,
-                                                      "#{current_path}/deployment/resources/#{template_folder}"
+                                                      "#{current_path}/deployment/resources"
 
+  template_name = template_values[:server_type] + '_' + template_name if template_values.has_key?(:server_type)
   FileUtils.cp(template_file.path, File.join(script_path, template_name))
 
   template_file.dispose
@@ -184,30 +185,28 @@ def zip_artifacts zip_file, zip_destination
 end
 
 def copy_solo_file_to_package_location script_path
-  FileUtils.cp(File.join("#{current_path}/deployment/resources/solo", 'solo.rb'),
-               File.join(script_path, 'solo.rb'))
+  FileUtils.cp "#{current_path}/deployment/resources/solo.rb",
+               File.join(script_path, 'solo.rb')
 end
 
 def package_web_scripts
   script_path = "#{PATH_STAGING}/web"
 
   #create solo-run.sh.erb
-  generate_script 'web',
-                  'web_solo_run.sh',
+  generate_script 'solo_run.sh',
                   {url: ARTIFACT_URL,
                    artifact_name: config.web_artifact_name,
-                   cookbook_package: PACKAGE_ZIP},
+                   cookbook_package: PACKAGE_ZIP,
+                   server_type: 'web'},
                   "#{PATH_SPADE_SCRIPTS}"
 
   #create node.json.erb
-  generate_script 'solo',
-                  'node.json',
+  generate_script 'node.json',
                   {run_list: config.web_run_list},
                   script_path
 
   #create solo-environment.rb.erb
-  generate_script 'solo',
-                  'solo-environment.rb',
+  generate_script 'solo-environment.rb',
                   {environment_name: config.deployment_name,
                    project_code: config.project_code,
                    artifacts_build_number: config.revision_number},
@@ -222,22 +221,20 @@ def package_db_scripts
   script_path = "#{PATH_STAGING}/db"
 
   #create solo-run.sh.erb
-  generate_script 'db',
-                  'db_solo_run.sh',
+  generate_script 'solo_run.sh',
                   {url: ARTIFACT_URL,
                    artifact_name: config.db_artifact_name,
-                   cookbook_package: PACKAGE_ZIP},
+                   cookbook_package: PACKAGE_ZIP,
+                   server_type: 'db'},
                   "#{PATH_SPADE_SCRIPTS}"
 
   #create node.json.erb
-  generate_script 'solo',
-                  'node.json',
+  generate_script 'node.json',
                   {run_list: config.db_run_list},
                   script_path
 
   #create solo-environment.rb.erb
-  generate_script 'solo',
-                  'solo-environment.rb',
+  generate_script 'solo-environment.rb',
                   {environment_name: config.deployment_name,
                    project_code: config.project_code,
                    artifacts_build_number: config.revision_number},
@@ -252,22 +249,20 @@ def package_lb_scripts
   script_path = "#{PATH_STAGING}/lb"
 
   #create solo-run.sh.erb
-  generate_script 'lb',
-                  'lb_solo_run.sh',
+  generate_script 'solo_run.sh',
                   {url: ARTIFACT_URL,
                    artifact_name: config.lb_artifact_name,
-                   cookbook_package: PACKAGE_ZIP},
+                   cookbook_package: PACKAGE_ZIP,
+                   server_type: 'lb'},
                   "#{PATH_SPADE_SCRIPTS}"
 
   #create node.json.erb
-  generate_script 'solo',
-                  'node.json',
+  generate_script 'node.json',
                   {run_list: config.lb_run_list},
                   script_path
 
   #create solo-environment.rb.erb
-  generate_script 'solo',
-                  'solo-environment.rb',
+  generate_script 'solo-environment.rb',
                   {environment_name: config.deployment_name,
                    project_code: config.project_code,
                    artifacts_build_number: config.revision_number},
@@ -279,7 +274,7 @@ def package_lb_scripts
 end
 
 def execute_multinode_deploy
-  generate_script 'requests_multinode', 'request.json', {deployment_name: config.deployment_name,
+  generate_script 'request_multinode.json', {deployment_name: config.deployment_name,
                                                          datacenter: config.datacenter,
                                                          tenant: config.OS_USERNAME,
                                                          artifactory: config.artifactory,
@@ -297,7 +292,7 @@ def execute_multinode_deploy
                                                          ssl_private_key: config.ssl_private_key},
                                                          PATH_SPADE_SCRIPTS
 
-  request_file = File.join(PATH_SPADE_SCRIPTS, 'request.json')
+  request_file = File.join(PATH_SPADE_SCRIPTS, 'request_multinode.json')
   request = JSON.parse(File.read(request_file), symbolize_names: true)
   logger.info "request: #{request}"
 
@@ -324,7 +319,7 @@ def execute_multinode_deploy
 end
 
 def execute_all_in_one_deploy
-  generate_script 'requests_all_in_one', 'request.json', {deployment_name: config.deployment_name,
+  generate_script 'request_all_in_one.json', {deployment_name: config.deployment_name,
                                                           datacenter: config.datacenter,
                                                           tenant: config.OS_USERNAME,
                                                           artifactory: config.artifactory,
@@ -343,7 +338,7 @@ def execute_all_in_one_deploy
                                                           all_in_one: config.all_in_one},
                                                           PATH_SPADE_SCRIPTS
 
-  request_file = File.join(PATH_SPADE_SCRIPTS, 'request.json')
+  request_file = File.join(PATH_SPADE_SCRIPTS, 'request_all_in_one.json')
   request = JSON.parse(File.read(request_file), symbolize_names: true)
   logger.info "request: #{request}"
 

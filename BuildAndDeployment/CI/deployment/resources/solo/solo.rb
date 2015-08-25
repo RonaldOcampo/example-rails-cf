@@ -1,7 +1,0 @@
-file_cache_path '/tmp'
-cookbook_path '/tmp/cookbooks'
-json_attribs '/tmp/cookbooks/node.json'
-environment 'solo-environment'
-environment_path '/tmp/cookbooks'
-Ohai::Config[:plugin_path] << '/etc/chef/ohai_plugins'
-Ohai::Config[:plugin_path] << 'c:/chef/ohai_plugins'
