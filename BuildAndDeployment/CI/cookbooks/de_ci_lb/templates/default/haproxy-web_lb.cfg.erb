@@ -4,7 +4,7 @@ global
     maxconn <%= node['haproxy']['global_max_connections'] %>
     user <%= node['haproxy']['user'] %>
     group <%= node['haproxy']['group'] %>
-    stats socket /tmp/haproxy.sock
+    stats socket /tmp/haproxy.sock mode 600 level admin
 
 defaults
     log     global
