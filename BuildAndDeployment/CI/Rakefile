@@ -59,7 +59,7 @@ task :package_cookbooks do
   zip_artifacts PACKAGE_ZIP, 'vendor/cookbooks'
 end
 
-desc 'Packages spade scripts for deployments '
+desc 'Packages spade scripts for deployments'
 task :package_spade_scripts do
   [PATH_STAGING, PATH_SPADE_SCRIPTS].each { |path| FileUtils.mkdir_p path }
 
@@ -415,5 +415,3 @@ def get_logs(deployment)
     }
   }
 end
-
-#TESTING AGAIN
